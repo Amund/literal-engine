@@ -5,7 +5,7 @@ Node template engine based on template literals, with no dependencies.
 ## Install
 
 ```
-$ npm i --save @amundsan/literal-engine
+$ npm i @amundsan/literal-engine
 ```
 
 ## Import
@@ -50,12 +50,19 @@ console.log(engine.render('page', { title: 'My page', content: 'My content' }))
 ```html
 <!-- page.html -->
 <html>
-    <head>
-        <title>${ data.title }</title>
-    </head>
+    ${ include('head', { ...data }) }
     <body>
         <h1>${ data.title }</h1>
         <p>${ data.content }</p>
     </body>
 </html>
+
+<!--head.html-->
+<head>
+    <title>${ data.title }</title>
+</head>
 ```
+
+## Credits
+
+Freely adapted from brilliant https://github.com/ahmadnassri/node-template-literals-engine
