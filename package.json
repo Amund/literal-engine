@@ -1,0 +1,28 @@
+{
+    "name": "@amundsan/literal-engine",
+    "version": "0.9.0",
+    "description": "Node template engine based on template literals, with no dependencies.",
+    "keywords": [],
+    "type": "module",
+    "main": "index.js",
+    "engine": {
+        "node": ">=20.1"
+    },
+    "scripts": {
+        "test": "mocha",
+        "dev": "mocha --watch --parallel --reporter min"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Amund/literal-engine.git"
+    },
+    "author": "Dimitri Avenel",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Amund/literal-engine/issues"
+    },
+    "homepage": "https://github.com/Amund/literal-engine#readme",
+    "devDependencies": {
+        "mocha": "^10.2.0"
+    }
+}
