@@ -1,8 +1,12 @@
 {
     "name": "@amundsan/literal-engine",
-    "version": "0.9.1",
+    "version": "0.10.0",
     "description": "Node template engine based on template literals, with no dependencies.",
-    "keywords": [],
+    "keywords": [
+        "template",
+        "literal",
+        "engine"
+    ],
     "type": "module",
     "main": "index.js",
     "engine": {
@@ -10,7 +14,7 @@
     },
     "scripts": {
         "test": "mocha",
-        "dev": "mocha --watch --parallel --reporter min"
+        "test-watch": "mocha --watch --parallel --reporter min"
     },
     "repository": {
         "type": "git",

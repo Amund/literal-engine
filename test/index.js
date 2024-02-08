@@ -1,75 +1,112 @@
+import { describe, it } from 'mocha'
 import assert from 'node:assert/strict'
 import Engine from '../index.js'
 
-describe('Literal engine', () => {
-    describe('compile', () => {
-        it('transform a string containing template strings to a parametized function', () => {
-            const engine = new Engine()
-            const str = '${ data.direction } park'
-            const func = engine.compile(str)
-            assert.ok(typeof func === 'function')
-
-            const output = func({ direction: 'south' })
-            assert.ok(output === 'south park')
-        })
+describe('template', () => {
+    it('add a new template to the templates list', () => {
+        const engine = new Engine()
+        assert(typeof engine.templates.name === 'undefined')
+        engine.template('name', 'content')
+        assert(typeof engine.templates.name === 'string')
     })
-    describe('template', () => {
-        it('add a new compiled template to the list', () => {
-            const engine = new Engine()
-            assert.ok(typeof engine.prepared.name === 'undefined')
-            engine.template('name', 'content')
-            assert.ok(typeof engine.prepared.name === 'function')
-        })
+})
+
+describe('prepare', () => {
+    it('load all templates from root folder', () => {
+        const engine = new Engine({ root: 'test/fixtures' })
+        assert(Object.keys(engine.templates).length === 0)
+        engine.template('name', 'content')
+        assert(typeof engine.templates.name === 'string')
     })
-    describe('prepare', () => {
-        it('compile all templates from root folder', () => {
-            const engine = new Engine({ root: 'test/fixtures' })
-            assert.ok(Object.keys(engine.prepared).length === 0)
-            engine.template('name', 'content')
-            assert.ok(typeof engine.prepared.name === 'function')
-        })
+})
+
+describe('render', async () => {
+    it('return same string as source if no data', () => {
+        const engine = new Engine()
+        engine.template('summary', 'Drugs are Bad, Mkay?')
+        const result = engine.render('summary')
+        assert.equal(result, 'Drugs are Bad, Mkay?')
     })
-    describe('render', () => {
-        it('return same string as source if no data', () => {
-            const engine = new Engine()
-            engine.template('summary', 'Drugs are Bad, Mkay?')
-            const result = engine.render('summary')
-            assert.equal(result, 'Drugs are Bad, Mkay?')
+    it('interpolate variables', () => {
+        const engine = new Engine()
+        engine.template('summary', 'Drugs are Bad, ${ok}?')
+        const result = engine.render('summary', { ok: 'Mkay' })
+        assert.equal(result, 'Drugs are Bad, Mkay?')
+    })
+    it('use templates files, if loaded', async () => {
+        const engine = new Engine({
+            root: 'test/fixtures',
         })
+        await engine.prepare()
+        const result = engine.render('template', { ok: 'Mkay' })
+        assert.equal(result, 'Drugs are Bad, Mkay?')
+    })
+    it('can extend another template', () => {
+        const engine = new Engine()
+        engine.template('base', '<body>${extend}</body>')
+        engine.template('page', 'content')
+        const result = engine.render('page', {}, 'base')
+        assert.equal(result, '<body>content</body>')
+    })
+})
 
-        it('interpolate variables', () => {
-            const engine = new Engine()
-            engine.template('summary', 'Drugs are Bad, ${ data.ok }?')
-            const result = engine.render('summary', { ok: 'Mkay' })
-            assert.equal(result, 'Drugs are Bad, Mkay?')
+describe('render (helpers)', () => {
+    it('use include in templates', () => {
+        const engine = new Engine()
+        engine.template('summary', 'Drugs are ${include("what")}, Mkay?')
+        engine.template('what', 'Bad')
+        const result = engine.render('summary')
+        assert.equal(result, 'Drugs are Bad, Mkay?')
+    })
+    it('interpolate variables in included templates', () => {
+        const engine = new Engine()
+        engine.template(
+            'summary',
+            'Drugs are ${include("what", {what})}, ${ok}?'
+        )
+        engine.template('what', '${what}')
+        const result = engine.render('summary', { what: 'Bad', ok: 'Mkay' })
+        assert.equal(result, 'Drugs are Bad, Mkay?')
+    })
+    it('can extend another template, containing includes', () => {
+        const engine = new Engine()
+        engine.template('base', '<body>${extend} ${include("include")}</body>')
+        engine.template('page', 'content')
+        engine.template('include', 'included')
+        const result = engine.render('page', {}, 'base')
+        assert.equal(result, '<body>content included</body>')
+    })
+    it('can add custom helpers', () => {
+        const engine = new Engine({
+            helpers: {
+                upcase: (str) => str.toUpperCase(),
+            },
         })
+        engine.template('summary', 'Drugs are ${upcase(what)}, Mkay?')
+        const result = engine.render('summary', { what: 'Bad' })
+        assert.equal(result, 'Drugs are BAD, Mkay?')
+    })
+})
 
-        it('use helpers in templates', () => {
-            const engine = new Engine()
-            engine.template('summary', 'Drugs are ${ include("what") }, Mkay?')
-            engine.template('what', 'Bad')
-            const result = engine.render('summary')
-            assert.equal(result, 'Drugs are Bad, Mkay?')
+describe('render (escaping)', () => {
+    it('replace sensible characters in html strings by default', () => {
+        const engine = new Engine()
+        engine.template('test', '<p>${ test }</p>')
+        const result = engine.render('test', { test: '<i>test</i>' })
+        assert.equal(result, '<p>&lt;i&gt;test&lt;/i&gt;</p>')
+    })
+    it('can be disabled globally, with an Engine option', () => {
+        const engine = new Engine({
+            autoescape: false,
         })
-
-        it('interpolate variables in included templates', () => {
-            const engine = new Engine()
-            engine.template(
-                'summary',
-                'Drugs are ${ include("what", data) }, ${ data.ok }?'
-            )
-            engine.template('what', '${ data.what }')
-            const result = engine.render('summary', { what: 'Bad', ok: 'Mkay' })
-            assert.equal(result, 'Drugs are Bad, Mkay?')
-        })
-
-        it('use templates files, if prepared', async () => {
-            const engine = new Engine({
-                root: 'test/fixtures',
-            })
-            await engine.prepare()
-            const result = engine.render('template', { ok: 'Mkay' })
-            assert.equal(result, 'Drugs are Bad, Mkay?')
-        })
+        engine.template('test', '<p>${ test }</p>')
+        const result = engine.render('test', { test: '<i>test</i>' })
+        assert.equal(result, '<p><i>test</i></p>')
+    })
+    it('can be disabled locally, with a double dollar sign "$${}"', () => {
+        const engine = new Engine()
+        engine.template('test', '<p>$${ test }</p>')
+        const result = engine.render('test', { test: '<i>test</i>' })
+        assert.equal(result, '<p><i>test</i></p>')
     })
 })
