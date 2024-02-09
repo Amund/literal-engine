@@ -8,7 +8,6 @@ Node template engine based on template literals, with no dependencies.
 -   Autoescaping by default
 -   Builtin template helpers (include, escape)
 -   Support adding custom template helpers
--   [TODO] Compatible with express
 -   [TODO] Benchmark
 
 ## Install
@@ -74,6 +73,8 @@ console.log(engine.render('page', { title: 'My page', content: 'My content' }))
 
 `include` is one of the helpers functions usable inside your templates. As it sounds, it includes a template into another template. It shares its signature with the `render` method (in fact... it IS the `render` method, internally) : `include(name, data, extend)`
 
+NOTE: As autoescape is active by default, it must be deactivated when using the include function, which legitimately injects html code. This can be done using the `$${...}` syntax.
+
 ```html
 <!--head.html-->
 <head>
@@ -84,7 +85,7 @@ console.log(engine.render('page', { title: 'My page', content: 'My content' }))
 ```html
 <!-- page.html -->
 <html>
-    ${ include('head', { title }) }
+    $${ include('head', { title }) }
     <body>
         <h1>${title}</h1>
         <p>${content}</p>
@@ -111,12 +112,19 @@ console.log(engine.render('page', { title: 'My page', content: 'My content' }))
 
 ### Extend
 
-Extending a template is the opposite of including: it "wrap" a template into another one. Extending is available as the third argument of the `render` method, and as the third argument of `include` function. Technically, an "extend" template is just a regular template with a special variable `${extend}`, where child template will be injected.
+Extending a template is the opposite of including: it "wrap" a template around another one. It can be done only with `include` function like this :
+
+```js
+const data = { title: 'My page', content: 'My content' }
+engine.render('base', { ...data, extend: engine.render('page', data) })
+```
+
+But there's a more convenient way of doing this, using the third argument of the "render" (and "include") function to specify the template to be extended. Technically, an "extend" template is just a regular template with a special variable `${extend}`, where child template will be injected. As with the `include` function, autoescape must be disabled with the syntax `$${extend}`.
 
 ```html
 <!--base.html-->
 <body>
-    ${extend}
+    $${extend}
 </body>
 ```
 
@@ -129,9 +137,8 @@ Extending a template is the opposite of including: it "wrap" a template into ano
 ```js
 const engine = new Engine({ root: 'path/to/templates' })
 await engine.prepare()
-console.log(
-    engine.render('page', { title: 'My page', content: 'My content' }, 'base')
-)
+const data = { title: 'My page', content: 'My content' }
+console.log(engine.render('page', data, 'base'))
 /*
 <body>
     <h1>My page</h1>
