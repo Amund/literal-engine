@@ -1,6 +1,6 @@
 {
     "name": "@amundsan/literal-engine",
-    "version": "0.10.0",
+    "version": "0.10.1",
     "description": "Node template engine based on template literals, with no dependencies.",
     "keywords": [
         "template",

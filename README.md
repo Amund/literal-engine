@@ -5,7 +5,7 @@ Node template engine based on template literals, with no dependencies.
 -   No custom syntax, just template literals (or template strings), `${...}`
 -   Support for include
 -   Support for extend
--   Autoescaping by default
+-   Autoescaping by default (locally or globally deactivatable)
 -   Builtin template helpers (include, escape)
 -   Support adding custom template helpers
 -   [TODO] Benchmark
@@ -146,6 +146,10 @@ console.log(engine.render('page', data, 'base'))
 </body>
 */
 ```
+
+### Debugging
+
+It can be sometimes difficult to know exactly what are the variables available in a template or a sub-template, and you can't do a `console.log()` without an effective variable name. In this case, you can print a special variable, named... `${variables}`, which print a sorted and coma's separated list of actual variable names.
 
 ## Credits
 
