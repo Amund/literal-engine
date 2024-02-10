@@ -69,6 +69,30 @@ console.log(engine.render('page', { title: 'My page', content: 'My content' }))
 */
 ```
 
+At any time, you can consult the list of all available templates (loaded from a file or a string) by dumping `engine.templates`, which is a plain object.
+
+### Autoescape
+
+By default, autoescape is active. This means that all variables and expressions passed into `${...}` in templates will be automatically escaped, replacing any dangerous characters by HTML entities. This feature can be globally disabled if required, by setting the `autoescape` constructor option to false.
+
+```js
+const engine = new Engine({ autoescape: false })
+```
+
+If this option is **globally disabled**, you can still perform this task manually, using the "escape" helper in your templates.
+
+```html
+<p>${ escape('<div>') }</p>
+<!-- <p>&lt;div&gt;</p> -->
+```
+
+If this option is **globally enabled**, you can still locally disable autoescape by placing an additional dollar sign in front of a variable: `$${...}`. This is particularly useful when using the include function, or when you want to use an extend.
+
+```html
+<p>$${ '<div>' }</p>
+<!-- <p><div></p> -->
+```
+
 ### Include
 
 `include` is one of the helpers functions usable inside your templates. As it sounds, it includes a template into another template. It shares its signature with the `render` method (in fact... it IS the `render` method, internally) : `include(name, data, extend)`
@@ -149,7 +173,15 @@ console.log(engine.render('page', data, 'base'))
 
 ### Debugging
 
-It can be sometimes difficult to know exactly what are the variables available in a template or a sub-template, and you can't do a `console.log()` without an effective variable name. In this case, you can print a special variable, named... `${variables}`, which print a sorted and coma's separated list of actual variable names.
+There's an engine constructor option for displaying errors directly in templates during the development phase, the `debug` option, which is a boolean set to `false` by default. All templates errors are logged to `process.stderr`, but it can be more convenient to have them directly in the rendered page.
+
+```js
+const engine = new Engine({ debug: true })
+```
+
+You can of course `${console.log(myvar)}` in a template to dump `myvar` in server console, and see what you can do with it.
+
+But it can be sometimes difficult to know exactly what are the variables available in a template or a sub-template, and you can't do a `console.log()` without an effective variable name. In this case, you can print a special variable, named... `${variables}`, which print a sorted and coma's separated list of actual variable names.
 
 ## Credits
 

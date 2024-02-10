@@ -26,37 +26,30 @@ const html = (literals, ...substs) => {
     })
 }
 
-class TemplateError extends Error {
-    constructor(template, data, err) {
-        super(err)
-        this.name = 'TemplateError'
-        this.message = `
-
-in "${template}"
-
-with ${JSON.stringify(data, null, 2)}
-
-${err.message}`
-    }
-}
-
 export default class Engine {
     constructor({
         root = null,
         extension = 'html',
         autoescape = true,
+        debug = false,
         helpers = {},
     } = {}) {
         this.templates = {}
         this.root = root
         this.extension = extension
         this.autoescape = autoescape
+        this.debug = debug
         this.helpers = {
             ...helpers,
             html,
             escape,
             include: this.render.bind(this),
         }
+
+        this.template(
+            'debug',
+            '<pre style="background: black; color: white; padding: 5px; width: fit-content;">Template "${template}" error: ${message}</pre>'
+        )
     }
 
     template(name = '', str = '') {
@@ -82,7 +75,19 @@ export default class Engine {
                 variables
             )
         } catch (err) {
-            throw new TemplateError(`${name}.${this.extension}`, data, err)
+            process.stderr.write(
+                [
+                    `Template error in "${name}": ${err.message}`,
+                    `with ${JSON.stringify(data, null, 2)}`,
+                    '',
+                ].join('\n')
+            )
+            if (this.debug) {
+                return this.render('debug', {
+                    template: name,
+                    message: err.message,
+                })
+            }
         }
 
         if (extend !== '') {
