@@ -171,6 +171,55 @@ console.log(engine.render('page', data, 'base'))
 */
 ```
 
+### Condition
+
+Conditional display of variables can easily be done with a ternary structure.
+
+```js
+const engine = new Engine()
+engine.template('content', '<p>${ isAlive ? "Kenny" : "Ghost" }</p>')
+const result = engine.render('content', { isAlive: true })
+// <p>Kenny</p>
+```
+
+For cases that are more complicated or too verbose to be written directly into the template, it is still possible to use a function, added as a helper to the engine.
+
+```js
+const engine = new Engine({
+    helpers: {
+        showKenny: (isAlive) => (isAlive ? 'Kenny' : 'Ghost'),
+    },
+})
+engine.template('content', '<p>${ showKenny(isAlive) }</p>')
+const result = engine.render('content', { isAlive: false })
+// <p>Ghost</p>
+```
+
+### Loop
+
+Another important point in using a model engine is the ability to loop. You can do this very simply, once again using one of javascript's native functions, `map`.
+
+```js
+const engine = new Engine()
+engine.template('li', "<li>${ alive ? '😐' : '🫥' } ${name}</li>")
+engine.template('ul', '<ul>${ list.map((li)=>include("li", { ...li })) }</ul>')
+const list = [
+    { name: 'Eric Cartman', alive: true },
+    { name: 'Kyle Broflovski', alive: true },
+    { name: 'Kenny McCormick', alive: false },
+    { name: 'Stan Marsh', alive: true },
+]
+const result = engine.render('ul', { list })
+/*
+<ul>
+    <li>😐 Eric Cartman</li>
+    <li>😐 Kyle Broflovski</li>
+    <li>🫥 Kenny McCormick</li>
+    <li>😐 Stan Marsh</li>
+</ul>
+*/
+```
+
 ### Debugging
 
 There's an engine constructor option for displaying errors directly in templates during the development phase, the `debug` option, which is a boolean set to `false` by default. All templates errors are logged to `process.stderr`, but it can be more convenient to have them directly in the rendered page.
