@@ -1,11 +1,17 @@
 {
     "name": "@amundsan/literal-engine",
-    "version": "0.10.3",
+    "version": "0.10.4",
     "description": "Node template engine based on template literals, with no dependencies.",
     "keywords": [
+        "node",
         "template",
+        "engine",
         "literal",
-        "engine"
+        "include",
+        "extend",
+        "autoescape",
+        "helpers",
+        "no-dependencies"
     ],
     "type": "module",
     "main": "index.js",
