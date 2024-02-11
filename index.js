@@ -52,6 +52,10 @@ export default class Engine {
         )
     }
 
+    helper(name = '', func = () => {}) {
+        this.helpers[name.trim()] = func
+    }
+
     template(name = '', str = '') {
         this.templates[name.trim()] = str.trim()
     }

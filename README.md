@@ -93,6 +93,46 @@ If this option is **globally enabled**, you can still locally disable autoescape
 <!-- <p><div></p> -->
 ```
 
+### Helpers
+
+You can make generic functions available in your templates by adding them to the list of helpers. They can also be added from the engine constructor.
+
+```js
+const engine = new Engine({
+    helpers: {
+        oddCase: (str) =>
+            str
+                .toLowerCase()
+                .split('')
+                .map((s, i) => (i % 2 == 0 ? s.toUpperCase() : s))
+                .join(''),
+    },
+})
+engine.template('content', '<p>${ oddCase(sentence) }</p>')
+console.log(
+    engine.render('content', { sentence: 'Oh my God! They killed Kenny!' })
+)
+// <p>Oh mY GoD! tHeY KiLlEd kEnNy!</p>
+```
+
+You can also add a new helper at any time using the `helper(name, func)` function.
+
+```js
+const engine = new Engine()
+engine.helper('evenCase', (str) =>
+    str
+        .toLowerCase()
+        .split('')
+        .map((s, i) => (i % 2 != 0 ? s.toUpperCase() : s))
+        .join('')
+)
+engine.template('content', '<p>${evenCase(sentence)}</p>')
+console.log(
+    engine.render('content', { sentence: 'Oh my God! They killed Kenny!' })
+)
+// <p>oH My gOd! ThEy kIlLeD KeNnY!</p>
+```
+
 ### Include
 
 `include` is one of the helpers functions usable inside your templates. As it sounds, it includes a template into another template. It shares its signature with the `render` method (in fact... it IS the `render` method, internally) : `include(name, data, extend)`
@@ -143,7 +183,7 @@ const data = { title: 'My page', content: 'My content' }
 engine.render('base', { ...data, extend: engine.render('page', data) })
 ```
 
-But there's a more convenient way of doing this, using the third argument of the "render" (and "include") function to specify the template to be extended. Technically, an "extend" template is just a regular template with a special variable `${extend}`, where child template will be injected. As with the `include` function, autoescape must be disabled with the syntax `$${extend}`.
+But there's a more convenient way of doing this, using the third argument of the `render` and `include` functions to specify the template to be extended. Technically, an "extend" template is just a regular template with a special variable `${extend}`, where child template will be injected. As with the `include` function, autoescape must be disabled with the syntax `$${extend}`.
 
 ```html
 <!--base.html-->
@@ -191,7 +231,7 @@ const engine = new Engine({
     },
 })
 engine.template('content', '<p>${ showKenny(isAlive) }</p>')
-const result = engine.render('content', { isAlive: false })
+console.log(engine.render('content', { isAlive: false }))
 // <p>Ghost</p>
 ```
 
@@ -209,7 +249,7 @@ const list = [
     { name: 'Kenny McCormick', alive: false },
     { name: 'Stan Marsh', alive: true },
 ]
-const result = engine.render('ul', { list })
+console.log(engine.render('ul', { list }))
 /*
 <ul>
     <li>😐 Eric Cartman</li>
